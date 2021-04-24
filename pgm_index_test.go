@@ -39,7 +39,7 @@ func TestPGMIndex(t *testing.T) {
 	for _, item := range input {
 		sort.Float64s(item.data)
 
-		ind := buildPGMIndex(item.data, item.epsilon)
+		ind := NewIndex(item.data, item.epsilon)
 		for _, level := range ind.levels {
 			fmt.Println(level)
 		}

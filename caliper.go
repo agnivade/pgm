@@ -8,21 +8,21 @@ import (
 
 const sigma = 0.00000000001
 
-type Caliper struct {
+type caliper struct {
 	hull         []point
 	pointIndex   int
 	currentAngle float64
 }
 
-func newCaliper(hull []point, pointIndex int, currentAngle float64) *Caliper {
-	return &Caliper{
+func newCaliper(hull []point, pointIndex int, currentAngle float64) caliper {
+	return caliper{
 		hull:         hull,
 		pointIndex:   pointIndex,
 		currentAngle: currentAngle,
 	}
 }
 
-func (c *Caliper) getAngleNextPoint() float64 {
+func (c *caliper) getAngleNextPoint() float64 {
 	p1 := c.hull[c.pointIndex]
 	p2 := c.hull[(c.pointIndex+1)%len(c.hull)]
 
@@ -37,12 +37,12 @@ func (c *Caliper) getAngleNextPoint() float64 {
 	return angle
 }
 
-func (c *Caliper) getConstant() float64 {
+func (c *caliper) getConstant() float64 {
 	p := c.hull[c.pointIndex]
 	return p.y - (c.getSlope() * p.x)
 }
 
-func (c *Caliper) getDeltaAngleNextPoint() float64 {
+func (c *caliper) getDeltaAngleNextPoint() float64 {
 	angle := c.getAngleNextPoint()
 
 	if angle < 0 {
@@ -57,7 +57,7 @@ func (c *Caliper) getDeltaAngleNextPoint() float64 {
 	return angle
 }
 
-func (c *Caliper) getIntersection(d *Caliper) point {
+func (c *caliper) getIntersection(d caliper) point {
 	var p point
 	switch {
 	case c.isVertical():
@@ -74,21 +74,38 @@ func (c *Caliper) getIntersection(d *Caliper) point {
 	return p
 }
 
-func (c *Caliper) getSlope() float64 {
+func (c *caliper) getSlope() float64 {
 	return math.Tan(c.currentAngle * math.Pi / 180)
 }
 
-func (c *Caliper) isHorizontal() bool {
+func (c *caliper) isHorizontal() bool {
 	return (math.Abs(c.currentAngle) < sigma) || (math.Abs(c.currentAngle-180) < sigma)
 }
 
-func (c *Caliper) isVertical() bool {
+func (c *caliper) isVertical() bool {
 	return (math.Abs(c.currentAngle-90) < sigma) || (math.Abs(c.currentAngle-270) < sigma)
 }
 
-func (c *Caliper) rotateBy(angle float64) {
+func (c *caliper) rotateBy(angle float64) {
 	if c.getDeltaAngleNextPoint() == angle {
 		c.pointIndex = (c.pointIndex + 1) % len(c.hull)
 	}
 	c.currentAngle = math.Mod(c.currentAngle+angle, 360)
+}
+
+func getSmallestTheta(i, j, k, l caliper) float64 {
+	thetaI := i.getDeltaAngleNextPoint()
+	thetaJ := j.getDeltaAngleNextPoint()
+	thetaK := k.getDeltaAngleNextPoint()
+	thetaL := l.getDeltaAngleNextPoint()
+
+	if thetaI <= thetaJ && thetaI <= thetaK && thetaI <= thetaL {
+		return thetaI
+	} else if thetaJ <= thetaK && thetaJ <= thetaL {
+		return thetaJ
+	} else if thetaK <= thetaL {
+		return thetaK
+	} else {
+		return thetaL
+	}
 }
