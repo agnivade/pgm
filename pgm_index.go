@@ -1,10 +1,12 @@
-package main
+package pgm
 
 import (
-	"fmt"
 	"math"
-	"sort"
 )
+
+type Index struct {
+	levels [][]Segment
+}
 
 type Segment struct {
 	key       float64
@@ -17,9 +19,9 @@ type point struct {
 	y float64
 }
 
-type corner int
-
 type rectangle [4]point
+
+type corner int
 
 const (
 	upperRight corner = iota + 1
@@ -28,8 +30,10 @@ const (
 	lowerRight
 )
 
-func buildPGMIndex(input []float64, epsilon float64) {
-	levels := make([][]Segment, 0)
+func buildPGMIndex(input []float64, epsilon float64) *Index {
+	index := &Index{
+		levels: make([][]Segment, 0),
+	}
 	keys := make([]float64, len(input))
 	copy(keys, input)
 	// repeat
@@ -40,7 +44,7 @@ func buildPGMIndex(input []float64, epsilon float64) {
 	// until m = 1
 	for {
 		model := buildPLAModel(keys, epsilon) // returns a single level
-		levels = append(levels, model)
+		index.levels = append(index.levels, model)
 
 		// Re-create keys for the next level.
 		keys = keys[:0] // wiping
@@ -48,16 +52,12 @@ func buildPGMIndex(input []float64, epsilon float64) {
 			keys = append(keys, seg.key)
 		}
 
-		fmt.Println("len model", len(model))
-
-		if len(model) == 1 || true {
+		if len(model) == 1 {
 			break
 		}
 	}
 
-	for _, level := range levels {
-		fmt.Println(level)
-	}
+	return index
 }
 
 func buildPLAModel(keys []float64, epsilon float64) []Segment {
@@ -70,23 +70,23 @@ func buildPLAModel(keys []float64, epsilon float64) []Segment {
 		}
 		hull := convexHull(temp)
 		// fmt.Println("hull", hull)
-
 		r := getSmallestRectangle(hull)
 		h := getHeight(r)
-		fmt.Println("height", h)
+		// fmt.Println("height", h)
 
 		if h > 2*epsilon {
-			// slope := (hi.Y - lo.Y) / (hi.X - lo.X)
-			// intercept := hi.Y - slope*hi.X
+			slope, intercept := getSlopeAndIntercept(r)
 			// Add to model
-			model = append(model, Segment{key: temp[0].y, slope: 0, intercept: 0})
+			model = append(model, Segment{key: temp[0].y, slope: slope, intercept: intercept})
 			// Empty convex hull
 			temp = temp[:0]
 			i--
 		}
 	}
 	if len(temp) > 0 {
-		model = append(model, Segment{key: temp[0].y, slope: 0, intercept: 0})
+		r := getSmallestRectangle(convexHull(temp))
+		slope, intercept := getSlopeAndIntercept(r)
+		model = append(model, Segment{key: temp[0].y, slope: slope, intercept: intercept})
 	}
 	return model
 }
@@ -146,6 +146,16 @@ func getHeight(r rectangle) float64 {
 
 	lengthAB := math.Sqrt((deltaXAB * deltaXAB) + (deltaYAB * deltaYAB))
 	return lengthAB
+}
+
+func getSlopeAndIntercept(r rectangle) (slope, intercept float64) {
+	// We take the midpoint of two sides and draw a line between them.
+	p1 := point{x: (r[0].x + r[1].x) / 2, y: (r[0].y + r[1].y) / 2}
+	p2 := point{x: (r[2].x + r[3].x) / 2, y: (r[2].y + r[3].y) / 2}
+
+	slope = (p2.y - p1.y) / (p2.x - p1.x)
+	intercept = p2.y - slope*p2.x
+	return
 }
 
 func getSmallestTheta(i, j, k, l *Caliper) float64 {
@@ -222,11 +232,4 @@ func convexHull(pts []point) []point {
 	lower = lower[:len(lower)-1]
 	upper = upper[:len(upper)-1]
 	return append(lower, upper...)
-}
-
-func main() {
-	input := []float64{2, 12, 15, 18, 23, 24, 29, 31, 34, 36, 38, 48, 55, 59, 60, 71, 73, 74, 76, 88, 95, 102, 115, 122, 123, 124, 158, 159, 161, 164, 165, 187, 189, 190}
-	sort.Float64s(input)
-
-	buildPGMIndex(input, 1.0)
 }

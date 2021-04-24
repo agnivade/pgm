@@ -1,3 +1,3 @@
-module github.com/agnivade/PGM-index
+module github.com/agnivade/pgm
 
 go 1.15

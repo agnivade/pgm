@@ -1,10 +1,12 @@
-package main
+package pgm
 
 import (
 	"math"
 )
 
-const sigma = 0
+// Ported from https://github.com/bkiers/RotatingCalipers.
+
+const sigma = 0.00000000001
 
 type Caliper struct {
 	hull         []point
@@ -57,19 +59,15 @@ func (c *Caliper) getDeltaAngleNextPoint() float64 {
 
 func (c *Caliper) getIntersection(d *Caliper) point {
 	var p point
-	if c.isVertical() {
+	switch {
+	case c.isVertical():
 		p.x = c.hull[c.pointIndex].x
-	} else if c.isHorizontal() {
-		p.x = d.hull[d.pointIndex].x
-	} else {
-		p.x = (d.getConstant() - c.getConstant()) / (c.getSlope() - d.getSlope())
-	}
-
-	if c.isVertical() {
 		p.y = d.getConstant()
-	} else if c.isHorizontal() {
+	case c.isHorizontal():
+		p.x = d.hull[d.pointIndex].x
 		p.y = c.getConstant()
-	} else {
+	default:
+		p.x = (d.getConstant() - c.getConstant()) / (c.getSlope() - d.getSlope())
 		p.y = (c.getSlope() * p.x) + c.getConstant()
 	}
 
@@ -81,11 +79,11 @@ func (c *Caliper) getSlope() float64 {
 }
 
 func (c *Caliper) isHorizontal() bool {
-	return (math.Abs(c.currentAngle) == 0) || (math.Abs(c.currentAngle-180) == 0)
+	return (math.Abs(c.currentAngle) < sigma) || (math.Abs(c.currentAngle-180) < sigma)
 }
 
 func (c *Caliper) isVertical() bool {
-	return (math.Abs(c.currentAngle-90) == 0) || (math.Abs(c.currentAngle-270) == 0)
+	return (math.Abs(c.currentAngle-90) < sigma) || (math.Abs(c.currentAngle-270) < sigma)
 }
 
 func (c *Caliper) rotateBy(angle float64) {
