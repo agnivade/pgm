@@ -114,10 +114,8 @@ func buildPLAModel(keys []float64, epsilon int) []Segment {
 			continue
 		}
 		hull := buildHull(temp)
-		// fmt.Println("hull", hull)
 		r := hull.getSmallestRectangle()
 		h := r.getHeight()
-		// fmt.Println("height", h)
 
 		if h > float64(2*epsilon) {
 			slope, intercept := r.slopeAndIntercept()
@@ -128,7 +126,9 @@ func buildPLAModel(keys []float64, epsilon int) []Segment {
 			i--
 		}
 	}
-	if len(temp) > 0 {
+	if len(temp) == 1 {
+		model = append(model, Segment{key: temp[0].y, slope: 1, intercept: temp[0].y - temp[0].x})
+	} else if len(temp) > 1 {
 		r := buildHull(temp).getSmallestRectangle()
 		slope, intercept := r.slopeAndIntercept()
 		model = append(model, Segment{key: temp[0].y, slope: slope, intercept: intercept})

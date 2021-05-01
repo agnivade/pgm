@@ -57,9 +57,9 @@ func TestPGMIndex(t *testing.T) {
 		sort.Float64s(tc.data)
 
 		ind := NewIndex(tc.data, tc.epsilon)
-		for _, level := range ind.levels {
-			fmt.Println(level)
-		}
+		// for _, level := range ind.levels {
+		// 	fmt.Println(level)
+		// }
 
 		if len(ind.levels[0]) != tc.segments {
 			t.Errorf("incorrect number of segments. Got: %d, Want: %d", len(ind.levels[0]), tc.segments)
