@@ -12,6 +12,7 @@ import (
 
 func BenchmarkIndex(b *testing.B) {
 	// read file
+	// use TestGendata to generate corpus.
 	f, err := os.Open("testdata/sorted.txt")
 	if err != nil {
 		b.Error(err)
