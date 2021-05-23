@@ -2,12 +2,12 @@ package pgm
 
 import (
 	"bufio"
+	"fmt"
 	"math"
 	"os"
 	"strconv"
 	"testing"
 	"time"
-	"fmt"
 )
 
 func BenchmarkIndex(b *testing.B) {
