@@ -115,8 +115,8 @@ func verifyIndex(t *testing.T, ind *Index, input []float64, epsilon int) {
 		t.Helper()
 		// Iterate all points in the segment and verify they are within e.
 		for i := start; i < end; i++ {
-			// (y -c)/m - key = err
-			err := ((set[i] - s.intercept) / s.slope) - float64(i)
+			// (mx+c) - i = err
+			err := (s.slope*set[i] + s.intercept) - float64(i)
 			if err > float64(2*epsilon) {
 				t.Errorf("error threshold exceeded, x: %d, y:%f", i, set[i])
 			}

@@ -102,14 +102,14 @@ func (ind *Index) Search(k float64) (ApproxPos, error) {
 func computePos(k float64, s Segment) int {
 	// TODO: The rounding off introduces inaccuracies.
 	// We need to use integers all the way.
-	return int(math.Round((k - s.intercept) / s.slope))
+	return int(math.Round(k*s.slope + s.intercept))
 }
 
 func buildPLAModel(keys []float64, epsilon int) []Segment {
 	model := []Segment{}
 	temp := []point{}
 	for i := 0; i < len(keys); i++ {
-		temp = append(temp, point{x: float64(i), y: keys[i]})
+		temp = append(temp, point{x: keys[i], y: float64(i)})
 		if len(temp) < 3 {
 			continue
 		}
@@ -120,18 +120,18 @@ func buildPLAModel(keys []float64, epsilon int) []Segment {
 		if h > float64(2*epsilon) {
 			slope, intercept := r.slopeAndIntercept()
 			// Add to model
-			model = append(model, Segment{key: temp[0].y, slope: slope, intercept: intercept})
+			model = append(model, Segment{key: temp[0].x, slope: slope, intercept: intercept})
 			// Empty convex hull
 			temp = temp[:0]
 			i--
 		}
 	}
 	if len(temp) == 1 {
-		model = append(model, Segment{key: temp[0].y, slope: 1, intercept: temp[0].y - temp[0].x})
+		model = append(model, Segment{key: temp[0].x, slope: 1, intercept: temp[0].y - temp[0].x})
 	} else if len(temp) > 1 {
 		r := buildHull(temp).getSmallestRectangle()
 		slope, intercept := r.slopeAndIntercept()
-		model = append(model, Segment{key: temp[0].y, slope: slope, intercept: intercept})
+		model = append(model, Segment{key: temp[0].x, slope: slope, intercept: intercept})
 	}
 	return model
 }
